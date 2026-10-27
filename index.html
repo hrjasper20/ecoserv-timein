@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="fil">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#16324A">
+<meta name="robots" content="noindex">
+<title>Ecoserv Time In</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root {
+    --ink: #16324A; --text: #3D5163; --muted: #6A7D8C; --line: #D9E2E8;
+    --bg: #F2F6F8; --card: #FFFFFF; --blue: #1C7FC4; --blue-dark: #15669F;
+    --green: #2E8B57; --green-bg: #E3F3E8; --red: #B83A2E; --red-bg: #FBE4E1; --amber-bg: #FDF3D6;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { background: var(--ink); color: #fff; padding: 14px 16px; display: flex; align-items: center; gap: 10px; }
+  header b { letter-spacing: .08em; font-size: 15px; }
+  header span { font-size: 15px; opacity: .85; }
+  .badge { margin-left: auto; background: #F4C542; color: #3A2C00; font-size: 12px; font-weight: 700;
+    padding: 3px 8px; border-radius: 99px; letter-spacing: .04em; opacity: 1 !important; }
+  main { max-width: 480px; margin: 0 auto; padding: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+  h1 { color: var(--ink); font-size: 22px; margin: 4px 0 14px; }
+  h2 { color: var(--ink); font-size: 17px; margin: 0 0 10px; }
+  label { display: block; font-weight: 600; color: var(--ink); margin: 12px 0 6px; font-size: 15px; }
+  input[type=text], input[type=password], select {
+    width: 100%; font: inherit; padding: 12px; border: 1.5px solid var(--line); border-radius: 10px;
+    background: #fff; color: var(--ink); }
+  input:focus, select:focus, button:focus-visible { outline: 3px solid #9CCBEA; outline-offset: 1px; }
+  button { font: inherit; cursor: pointer; }
+  .btn { width: 100%; border: 0; border-radius: 12px; padding: 15px; font-weight: 700; font-size: 17px;
+    background: var(--blue); color: #fff; margin-top: 16px; }
+  .btn:active { background: var(--blue-dark); }
+  .btn:disabled { background: #B9C7D1; color: #F4F7F9; cursor: not-allowed; }
+  .btn.ghost { background: #fff; color: var(--blue); border: 1.5px solid var(--blue); }
+  .link { background: none; border: 0; color: var(--blue); text-decoration: underline; padding: 0; font-size: 14px; }
+  .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .chip { font-size: 13px; background: #E6F0F7; color: var(--blue-dark); padding: 3px 10px; border-radius: 99px; font-weight: 600; }
+  .muted { color: var(--muted); font-size: 14px; }
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .seg button, .opts button { border: 1.5px solid var(--line); background: #fff; color: var(--ink);
+    border-radius: 12px; padding: 14px 8px; font-weight: 700; }
+  .seg button[aria-checked=true], .opts button[aria-checked=true] { border-color: var(--blue); background: #E6F0F7; color: var(--blue-dark); }
+  .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .opts button { padding: 11px 6px; font-weight: 600; font-size: 15px; }
+  .static { padding: 12px; border-radius: 10px; background: var(--bg); color: var(--ink); font-weight: 600; }
+  .photo-box { border: 2px dashed var(--line); border-radius: 12px; min-height: 120px; display: grid; place-items: center;
+    overflow: hidden; background: var(--bg); }
+  .photo-box img { width: 100%; display: block; }
+  .status { display: flex; gap: 8px; align-items: flex-start; font-size: 15px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 7px; flex: none; background: #C9A227; }
+  .dot.ok { background: var(--green); } .dot.fail { background: var(--red); }
+  .msg { margin: 12px 0 0; font-size: 15px; min-height: 1px; }
+  .msg.err { color: var(--red); font-weight: 600; }
+  .note { background: var(--amber-bg); border-radius: 10px; padding: 10px 12px; font-size: 14px; margin-top: 10px; color: #5B4600; }
+  .done { text-align: center; }
+  .done svg { width: 72px; height: 72px; }
+  .done .big { font-size: 30px; font-weight: 800; color: var(--ink); margin: 6px 0 2px; }
+  .flags { text-align: left; }
+  .loading { text-align: center; padding: 48px 16px; color: var(--muted); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <b>ECOSERV</b><span>Time In</span><span class="badge">TEST</span>
+</header>
+<main>
+
+  <section id="s-loading" class="loading" aria-live="polite">Sandali lang...</section>
+
+  <section id="s-login" hidden>
+    <h1>Time In / Time Out</h1>
+    <div class="card">
+      <p class="muted" style="margin:0">Isang beses mo lang ito ilalagay sa phone na ito.</p>
+      <label for="emp">Employee No</label>
+      <input id="emp" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false">
+      <label for="pin">PIN</label>
+      <input id="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="8">
+      <button id="btn-login" class="btn">Pasok</button>
+      <p id="login-msg" class="msg" role="alert"></p>
+    </div>
+  </section>
+
+  <section id="s-main" hidden>
+    <div class="card">
+      <div class="row"><h2 id="who" style="margin:0"></h2><span id="type" class="chip"></span></div>
+      <p id="last" class="muted" style="margin:6px 0 0"></p>
+      <p id="device-note" class="note" hidden>Bagong phone ito para sa account mo. Makikita ito ng payroll.</p>
+      <button id="btn-switch" class="link" style="margin-top:8px">Hindi ikaw? Palitan</button>
+    </div>
+
+    <div class="card">
+      <h2 id="lbl-action">Ano ang gagawin mo?</h2>
+      <div class="seg" role="radiogroup" aria-labelledby="lbl-action">
+        <button role="radio" data-action="IN" aria-checked="false">Time In</button>
+        <button role="radio" data-action="OUT" aria-checked="false">Time Out</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 id="lbl-where">Nasaan ka?</h2>
+      <div id="where"></div>
+    </div>
+
+    <div class="card">
+      <h2>Selfie</h2>
+      <p class="muted" style="margin-top:0">Dapat kita ang mukha mo at ang lugar sa likod mo.</p>
+      <div class="photo-box" id="photo-box"><span class="muted">Wala pang picture</span></div>
+      <input id="cam" type="file" accept="image/*" capture="user" hidden>
+      <button id="btn-photo" class="btn ghost">Mag-selfie</button>
+    </div>
+
+    <div class="card">
+      <h2>Location</h2>
+      <div class="status"><span id="gps-dot" class="dot"></span><span id="gps-text" aria-live="polite">Hinahanap ang location...</span></div>
+      <button id="btn-gps" class="link" style="margin-top:8px" hidden>Subukan ulit</button>
+    </div>
+
+    <button id="btn-send" class="btn" disabled>I-send</button>
+    <p id="main-msg" class="msg" role="alert"></p>
+  </section>
+
+  <section id="s-done" hidden>
+    <div class="card done">
+      <svg viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="34" fill="#E3F3E8"/><path d="M22 37l9 9 19-20" fill="none" stroke="#2E8B57" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <p id="done-action" class="muted" style="margin:8px 0 0;font-weight:700"></p>
+      <p id="done-time" class="big"></p>
+      <p id="done-date" class="muted" style="margin:0"></p>
+      <p id="done-where" style="margin:6px 0 0"></p>
+      <div id="done-flags" class="note flags" hidden></div>
+      <button id="btn-done" class="btn">Tapos</button>
+    </div>
+  </section>
+
+</main>
+<script>
+(function () {
+  // The Apps Script web app (/exec) that saves to the Sheet and Drive.
+  var API_URL = window.ECO_API || 'PASTE_EXEC_URL_HERE';
+  var PHOTO_MAX_AGE_MS = 3 * 60 * 1000;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var S = { emp: '', pin: '', info: null, action: 'IN', kind: '', siteName: '', project: '', other: '',
+    img: null, photoCheck: 'ok', gps: null, gpsState: 'idle', offset: 0, device: '' };
+
+  function store(key, val) {
+    try { if (val === undefined) return localStorage.getItem(key); localStorage.setItem(key, val); } catch (e) { return null; }
+  }
+  // No cookies are sent, so the Google accounts signed in on the phone never get in the way.
+  function run(fn) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    return fetch(API_URL, { method: 'POST', body: JSON.stringify({ fn: fn, args: args }), credentials: 'omit', redirect: 'follow' })
+      .catch(function () { throw new Error('Walang signal o hindi maabot ang system. Subukan ulit.'); })
+      .then(function (r) { return r.json(); })
+      .then(function (res) { if (!res.ok) throw new Error(res.error); return res.data; });
+  }
+  function show(id) { ['s-loading', 's-login', 's-main', 's-done'].forEach(function (s) { $(s).hidden = s !== id; }); window.scrollTo(0, 0); }
+  function say(el, text, err) { el.textContent = text || ''; el.className = 'msg' + (err ? ' err' : ''); }
+  function nowServer() { return Date.now() + S.offset; }
+  function fmt(ts) {
+    return new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', year: 'numeric',
+      hour: 'numeric', minute: '2-digit' }).format(new Date(ts));
+  }
+  function askPin(text) {
+    S.pin = ''; $('pin').value = '';
+    $('emp').value = S.emp || store('eco_emp') || '';
+    say($('login-msg'), text || '', !!text);
+    show('s-login');
+  }
+
+  // Device id: a random id kept on this phone. It lets the phone skip the PIN next time,
+  // and payroll sees a flag when someone signs in on another phone.
+  S.device = store('eco_device');
+  if (!S.device) {
+    S.device = 'd-' + Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+    store('eco_device', S.device);
+  }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+  run('getServerTime').then(function (t) { S.offset = t - Date.now(); }).catch(function () {});
+
+  // ---------- Opening the app ----------
+  function resume() {
+    S.emp = store('eco_emp') || '';
+    if (!S.emp) return askPin();
+    show('s-loading');
+    run('resume', S.emp, S.device).then(function (info) { S.info = info; openMain(); })
+      .catch(function (e) { askPin(e.message === 'PIN_NEEDED' ? '' : e.message); });
+  }
+
+  function doLogin() {
+    var emp = $('emp').value.trim(), pin = $('pin').value.trim();
+    if (!emp || !pin) return say($('login-msg'), 'Ilagay ang Employee No at PIN.', true);
+    $('btn-login').disabled = true;
+    say($('login-msg'), 'Sandali lang...');
+    run('login', emp, pin, S.device).then(function (info) {
+      S.emp = emp; S.pin = pin; S.info = info;
+      store('eco_emp', emp);
+      say($('login-msg'), '');
+      openMain();
+    }).catch(function (e) { say($('login-msg'), e.message, true); })
+      .then(function () { $('btn-login').disabled = false; });
+  }
+  $('btn-login').addEventListener('click', doLogin);
+  $('pin').addEventListener('keydown', function (e) { if (e.key === 'Enter') doLogin(); });
+
+  function openMain() {
+    var i = S.info;
+    $('who').textContent = 'Hi, ' + i.name;
+    $('type').textContent = i.type;
+    $('last').textContent = i.last ? 'Huling record: ' + (i.last.action === 'IN' ? 'Time In' : 'Time Out') + ', ' + i.last.label : 'Wala ka pang record.';
+    $('device-note').hidden = !i.newDevice;
+    S.img = null; S.photoCheck = 'ok';
+    $('photo-box').innerHTML = '<span class="muted">Wala pang picture</span>';
+    $('btn-photo').textContent = 'Mag-selfie';
+    say($('main-msg'), '');
+    setAction(i.suggested);
+    buildWhere();
+    show('s-main');
+    getGps();
+  }
+  $('btn-switch').addEventListener('click', function () {
+    store('eco_emp', ''); S.emp = ''; askPin(); $('emp').focus();
+  });
+
+  // ---------- Time In / Time Out ----------
+  function setAction(a) {
+    S.action = a;
+    document.querySelectorAll('[data-action]').forEach(function (b) {
+      b.setAttribute('aria-checked', String(b.getAttribute('data-action') === a));
+    });
+    $('btn-send').textContent = a === 'IN' ? 'I-send ang Time In' : 'I-send ang Time Out';
+    redraw();
+  }
+  document.querySelectorAll('[data-action]').forEach(function (b) {
+    b.addEventListener('click', function () { setAction(b.getAttribute('data-action')); });
+  });
+
+  // ---------- Nasaan ka? ----------
+  function buildWhere() {
+    var i = S.info, box = $('where');
+    S.kind = ''; S.siteName = ''; S.project = ''; S.other = '';
+    box.innerHTML = '';
+    if (i.type !== 'Driver') {
+      S.kind = 'site';
+      if (!i.sites.length) {
+        box.innerHTML = '<p class="msg err">Walang site sa account mo. Kausapin ang payroll.</p>';
+      } else if (i.sites.length === 1) {
+        S.siteName = i.sites[0];
+        box.innerHTML = '<div class="static"></div>';
+        box.firstChild.textContent = S.siteName;
+      } else {
+        box.appendChild(selectOf(i.sites, 'Pumili ng site', function (v) { S.siteName = v; }));
+      }
+      return validate();
+    }
+    var kinds = [];
+    if (i.sites.length) kinds.push(['site', 'Staff house']);
+    kinds.push(['project', 'Project'], ['stayin', 'Stay-in'], ['other', 'Iba']);
+    var opts = document.createElement('div');
+    opts.className = 'opts'; opts.setAttribute('role', 'radiogroup'); opts.setAttribute('aria-labelledby', 'lbl-where');
+    var detail = document.createElement('div');
+    kinds.forEach(function (k) {
+      var b = document.createElement('button');
+      b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', 'false'); b.textContent = k[1];
+      b.addEventListener('click', function () {
+        opts.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-checked', String(x === b)); });
+        S.kind = k[0]; S.siteName = ''; S.project = ''; S.other = '';
+        detail.innerHTML = '';
+        if (k[0] === 'site') {
+          if (i.sites.length === 1) { S.siteName = i.sites[0]; }
+          else detail.appendChild(selectOf(i.sites, 'Pumili ng staff house', function (v) { S.siteName = v; }));
+        } else if (k[0] === 'project' || k[0] === 'stayin') {
+          if (!i.projects.length) detail.innerHTML = '<p class="msg err">Walang project sa listahan. Piliin ang "Iba".</p>';
+          else detail.appendChild(selectOf(i.projects, 'Pumili ng project', function (v) { S.project = v; }));
+        } else {
+          var lab = document.createElement('label'); lab.textContent = 'Saan ka?'; lab.htmlFor = 'other';
+          var inp = document.createElement('input'); inp.type = 'text'; inp.id = 'other'; inp.maxLength = 80;
+          inp.addEventListener('input', function () { S.other = inp.value; validate(); redraw(); });
+          detail.appendChild(lab); detail.appendChild(inp);
+        }
+        validate(); redraw();
+      });
+      opts.appendChild(b);
+    });
+    box.appendChild(opts); box.appendChild(detail);
+    validate();
+  }
+  function selectOf(list, placeholder, onPick) {
+    var sel = document.createElement('select');
+    sel.setAttribute('aria-labelledby', 'lbl-where');
+    sel.innerHTML = '<option value="">' + placeholder + '</option>';
+    list.forEach(function (v) { var o = document.createElement('option'); o.value = v; o.textContent = v; sel.appendChild(o); });
+    sel.style.marginTop = '10px';
+    sel.addEventListener('change', function () { onPick(sel.value); validate(); redraw(); });
+    return sel;
+  }
+  function whereText() {
+    if (S.kind === 'site') return S.siteName;
+    if (S.kind === 'project') return S.project ? 'Project: ' + S.project : '';
+    if (S.kind === 'stayin') return S.project ? 'Stay-in: ' + S.project : '';
+    if (S.kind === 'other') return S.other.trim() ? 'Iba: ' + S.other.trim() : '';
+    return '';
+  }
+
+  // ---------- Selfie ----------
+  $('btn-photo').addEventListener('click', function () { $('cam').value = ''; $('cam').click(); });
+  $('cam').addEventListener('change', function () {
+    var file = $('cam').files && $('cam').files[0];
+    if (!file) return;
+    var age = file.lastModified ? Math.abs(Date.now() - file.lastModified) : null;
+    if (age !== null && age > PHOTO_MAX_AGE_MS) {
+      say($('main-msg'), 'Lumang picture ito. Kumuha ng bagong selfie gamit ang camera.', true);
+      return;
+    }
+    S.photoCheck = age === null ? 'unknown' : 'ok';
+    say($('main-msg'), '');
+    loadImage(file).then(function (img) {
+      S.img = img;
+      $('btn-photo').textContent = 'Ulitin ang selfie';
+      redraw(); validate();
+    }).catch(function () { say($('main-msg'), 'Hindi mabuksan ang picture. Subukan ulit.', true); });
+  });
+  function loadImage(file) {
+    if (window.createImageBitmap) return createImageBitmap(file);
+    return new Promise(function (res, rej) {
+      var img = new Image(); img.onload = function () { res(img); }; img.onerror = rej; img.src = URL.createObjectURL(file);
+    });
+  }
+  // Draws the photo smaller (to send fast on weak signal) with a stamp: name, action, Google time, place, GPS.
+  function render() {
+    if (!S.img) return null;
+    var w0 = S.img.width, h0 = S.img.height, scale = Math.min(1, 720 / Math.max(w0, h0));
+    var w = Math.round(w0 * scale), h = Math.round(h0 * scale);
+    var c = document.createElement('canvas'); c.width = w; c.height = h;
+    var x = c.getContext('2d');
+    x.drawImage(S.img, 0, 0, w, h);
+    var fs = Math.max(13, Math.round(w / 30)), pad = Math.round(fs * .6);
+    var lines = [
+      S.info.name + '  |  ' + (S.action === 'IN' ? 'TIME IN' : 'TIME OUT'),
+      fmt(nowServer()) + (whereText() ? '  |  ' + whereText() : ''),
+      S.gps ? S.gps.lat.toFixed(5) + ', ' + S.gps.lng.toFixed(5) + '  (±' + Math.round(S.gps.acc) + ' m)' : 'Walang GPS',
+    ];
+    var band = lines.length * fs * 1.35 + pad * 2;
+    x.fillStyle = 'rgba(10, 25, 38, .72)'; x.fillRect(0, h - band, w, band);
+    x.fillStyle = '#fff'; x.font = '600 ' + fs + 'px system-ui, sans-serif'; x.textBaseline = 'top';
+    lines.forEach(function (t, n) { x.fillText(t, pad, h - band + pad + n * fs * 1.35, w - pad * 2); });
+    return c;
+  }
+  function redraw() {
+    var c = render();
+    if (!c) return;
+    var img = document.createElement('img');
+    img.alt = 'Ang selfie mo, may tatak na oras at lugar';
+    img.src = c.toDataURL('image/jpeg', .6);
+    $('photo-box').innerHTML = ''; $('photo-box').appendChild(img);
+  }
+
+  // ---------- GPS ----------
+  function getGps() {
+    S.gps = null; S.gpsState = 'waiting';
+    $('gps-dot').className = 'dot'; $('gps-text').textContent = 'Hinahanap ang location...'; $('btn-gps').hidden = true;
+    validate();
+    if (!navigator.geolocation) return gpsFail('Hindi kaya ng phone na ito ang location.');
+    navigator.geolocation.getCurrentPosition(function (p) {
+      S.gps = { lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy };
+      S.gpsState = 'ok';
+      $('gps-dot').className = 'dot ok';
+      $('gps-text').textContent = 'Nakuha ang location (±' + Math.round(S.gps.acc) + ' m).' +
+        (S.gps.acc > 200 ? ' Mahina ang GPS, lumabas sa bukas na lugar at subukan ulit.' : '');
+      $('btn-gps').hidden = S.gps.acc <= 200;
+      redraw(); validate();
+    }, function (err) {
+      gpsFail(err.code === 1 ? 'Naka-block ang location. I-allow ang location para sa page na ito, tapos Subukan ulit.'
+        : 'Hindi makuha ang location. Lumabas sa bukas na lugar at Subukan ulit.');
+    }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+  }
+  function gpsFail(text) {
+    S.gpsState = 'fail';
+    $('gps-dot').className = 'dot fail';
+    $('gps-text').textContent = text + ' Pwede pa ring i-send, pero mamarkahan itong "Walang GPS".';
+    $('btn-gps').hidden = false;
+    redraw(); validate();
+  }
+  $('btn-gps').addEventListener('click', getGps);
+
+  // ---------- Send ----------
+  function validate() {
+    var ready = !!S.img && S.gpsState !== 'waiting' && S.gpsState !== 'idle' && !!whereText();
+    $('btn-send').disabled = !ready;
+    return ready;
+  }
+  $('btn-send').addEventListener('click', function () {
+    if (!validate()) return;
+    var i = S.info;
+    if (S.action === 'IN' && i.suggested === 'OUT' &&
+        !confirm('Naka-time in ka na (' + i.last.label + '). Time In ulit?')) return;
+    if (S.action === 'OUT' && i.suggested === 'IN' &&
+        !confirm('Wala kang bukas na time in. Time Out pa rin?')) return;
+    var c = render();
+    var p = {
+      emp: S.emp, pin: S.pin, action: S.action, kind: S.kind, siteName: S.siteName, project: S.project, other: S.other,
+      lat: S.gps ? S.gps.lat : null, lng: S.gps ? S.gps.lng : null, acc: S.gps ? S.gps.acc : null,
+      device: S.device, photoCheck: S.photoCheck, photo: c.toDataURL('image/jpeg', .72).split(',')[1],
+    };
+    $('btn-send').disabled = true;
+    say($('main-msg'), 'Sine-send...');
+    run('submit', p).then(function (r) {
+      $('done-action').textContent = r.action === 'IN' ? 'TIME IN' : 'TIME OUT';
+      $('done-time').textContent = r.time;
+      $('done-date').textContent = r.date;
+      $('done-where').textContent = r.where;
+      var f = $('done-flags');
+      f.hidden = !r.flags.length;
+      f.innerHTML = '';
+      if (r.flags.length) {
+        var t = document.createElement('div'); t.textContent = 'Paalala (makikita ito ng payroll):'; t.style.fontWeight = '700';
+        f.appendChild(t);
+        r.flags.forEach(function (x) { var d = document.createElement('div'); d.textContent = '- ' + x; f.appendChild(d); });
+      }
+      show('s-done');
+    }).catch(function (e) {
+      if (e.message === 'PIN_NEEDED') return askPin('Ilagay ulit ang PIN mo, tapos i-send ulit.');
+      say($('main-msg'), e.message + ' Hindi pa ito na-send. Pindutin ulit kapag may signal.', true);
+      validate();
+    });
+  });
+  $('btn-done').addEventListener('click', resume);
+
+  resume();
+})();
+</script>
+</body>
+</html>
